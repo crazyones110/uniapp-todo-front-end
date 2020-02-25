@@ -1,0 +1,5 @@
+{
+  "usingComponents": {
+    "swiper-action": "/components/swiperAction"
+  }
+}

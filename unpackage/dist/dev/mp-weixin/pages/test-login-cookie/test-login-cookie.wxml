@@ -1,0 +1,1 @@
+<view class="data-v-048908f6"><image src="{{avatarUrl}}" mode="aspectFit" class="data-v-048908f6"></image><view class="_div data-v-048908f6">{{nickName}}</view><button type="primary" open-type="getUserInfo" withCredentials="true" data-event-opts="{{[['getuserinfo',[['wxLogin',['$event']]]]]}}" bindgetuserinfo="__e" class="data-v-048908f6">微信登录</button></view>

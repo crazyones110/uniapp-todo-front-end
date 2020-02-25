@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "代办",
+  "usingComponents": {
+    "todo-header": "/components/todoHeader",
+    "swiper-action": "/components/swiperAction",
+    "swiper-action-list": "/components/swiperActionList",
+    "uni-swipe-action": "/components/uni-swipe-action/uni-swipe-action",
+    "uni-swipe-action-item": "/components/uni-swipe-action-item/uni-swipe-action-item"
+  }
+}
