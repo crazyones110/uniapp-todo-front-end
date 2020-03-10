@@ -142,6 +142,25 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 var _vuex = __webpack_require__(/*! vuex */ 17);function _slicedToArray(arr, i) {return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();}function _nonIterableRest() {throw new TypeError("Invalid attempt to destructure non-iterable instance");}function _iterableToArrayLimit(arr, i) {var _arr = [];var _n = true;var _d = false;var _e = undefined;try {for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {_arr.push(_s.value);if (i && _arr.length === i) break;}} catch (err) {_d = true;_e = err;} finally {try {if (!_n && _i["return"] != null) _i["return"]();} finally {if (_d) throw _e;}}return _arr;}function _arrayWithHoles(arr) {if (Array.isArray(arr)) return arr;}function _objectSpread(target) {for (var i = 1; i < arguments.length; i++) {var source = arguments[i] != null ? arguments[i] : {};var ownKeys = Object.keys(source);if (typeof Object.getOwnPropertySymbols === 'function') {ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {return Object.getOwnPropertyDescriptor(source, sym).enumerable;}));}ownKeys.forEach(function (key) {_defineProperty(target, key, source[key]);});}return target;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var _default =
 
 
@@ -154,12 +173,23 @@ var _vuex = __webpack_require__(/*! vuex */ 17);function _slicedToArray(arr, i) 
 
   },
   computed: _objectSpread({},
-  (0, _vuex.mapState)(['isLogin'])),
+  (0, _vuex.mapState)(['isLogin', 'todoCount', 'memoCount', 'restTodoCount']), {
+    online: function online() {
+      return this.isLogin ? '在线中' : '已下线';
+    } }),
 
   methods: _objectSpread({},
-  (0, _vuex.mapMutations)(['changeLoginStatus']), {
+  (0, _vuex.mapMutations)(['changeLoginStatus', 'assignMemoCount', 'assignTodoCount', 'assignRestTodoCount']), {
+    switchTab: function switchTab(tab) {
+      var switchOption = {
+        memo: '../memo/memo',
+        todo: '../todo/todo' };
+
+      uni.switchTab({
+        url: switchOption[tab] });
+
+    },
     wxLogin: function wxLogin(e) {var _this = this;
-      console.log('我在手机上点了登录啦');
       if (this.isLogin) {
         uni.showToast({
           title: '您已登录' });
@@ -193,6 +223,13 @@ var _vuex = __webpack_require__(/*! vuex */ 17);function _slicedToArray(arr, i) 
               var _res$cookies$0$split = res.cookies[0].split('='),_res$cookies$0$split2 = _slicedToArray(_res$cookies$0$split, 2),userId = _res$cookies$0$split2[1]; // ['userId', '1a2b3f']
               uni.setStorageSync('userId', userId);
             }
+            uni.setStorageSync('memoCount', res.data.data.memoCount);
+            uni.setStorageSync('todoCount', res.data.data.todoCount);
+            uni.setStorageSync('restTodoCount', res.data.data.restTodoCount);
+            _this.assignMemoCount(res.data.data.memoCount);
+            _this.assignTodoCount(res.data.data.todoCount);
+            _this.assignRestTodoCount(res.data.data.restTodoCount);
+
             // 这以后其实是登录过的状态
             _this.changeLoginStatus(true);
             uni.$emit('loginFinished');
@@ -204,17 +241,68 @@ var _vuex = __webpack_require__(/*! vuex */ 17);function _slicedToArray(arr, i) 
               title: '登录成功',
               icon: 'success' });
 
-            console.log(res);
-          } else {
+          } else if (res.statusCode === 500) {
             _this.changeLoginStatus(false);
             uni.showToast({
-              title: '登录失败',
-              icon: 'none' });
+              title: '登录失败, 后台出了一点问题',
+              icon: '../../static/大哭.png' });
 
           }
         });
       });
-    } }) };exports.default = _default;
+    } }),
+
+  onPullDownRefresh: function onPullDownRefresh() {var _this2 = this;
+    if (!this.isLogin) {
+      uni.showToast({
+        title: '请先登录',
+        image: '../../static/login.png' });
+
+      uni.stopPullDownRefresh();
+      return;
+    }
+    // 这里开始一定是登录过的！所以必然是授权过的
+    uni.getUserInfo({
+      provider: 'weixin',
+      withCredentials: true,
+      success: function success(res) {var _res$userInfo =
+        res.userInfo,nickName = _res$userInfo.nickName,avatarUrl = _res$userInfo.avatarUrl;
+        _this2.nickName = nickName;
+        _this2.avatarUrl = avatarUrl;
+        uni.setStorageSync('nickName', nickName);
+        uni.setStorageSync('avatarUrl', avatarUrl);
+        uni.login({
+          provider: 'weixin' }).
+        then(function (res1) {var _res2 = _slicedToArray(
+          res1, 2),code = _res2[1].code; // 微信服务器给的 code
+          _this2.$http.post("/auth/updateUserInfo", {
+            nickName: nickName,
+            avatarUrl: avatarUrl },
+          {
+            header: {
+              Cookie: "userId=".concat(uni.getStorageSync('userId')) } }).
+
+          then(function (res) {
+            if (res.statusCode === 200) {
+              uni.stopPullDownRefresh();var _res$data$data =
+              res.data.data,memoCount = _res$data$data.memoCount,todoCount = _res$data$data.todoCount,restTodoCount = _res$data$data.restTodoCount;
+              uni.setStorageSync('memoCount', memoCount);
+              uni.setStorageSync('todoCount', todoCount);
+              uni.setStorageSync('restTodoCount', restTodoCount);
+              _this2.assignMemoCount(memoCount);
+              _this2.assignTodoCount(todoCount);
+              _this2.assignRestTodoCount(restTodoCount);
+            } else if (res.statusCode === 500) {
+              uni.showToast({
+                title: '数据更新失败, 后台出了一点问题',
+                icon: '../../static/大哭.png' });
+
+            }
+          });
+        });
+      } });
+
+  } };exports.default = _default;
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/@dcloudio/uni-mp-weixin/dist/index.js */ 1)["default"]))
 
 /***/ }),

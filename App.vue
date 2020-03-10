@@ -13,7 +13,7 @@
       expires: false
     },
     methods:{
-      ...mapMutations(['changeLoginStatus', 'changeOpenid']),
+      ...mapMutations(['changeLoginStatus', 'changeOpenid', 'assignMemoCount', 'assignTodoCount']),
       checkLogin() {
         const userId = uni.getStorageSync('userId')
         if (!userId) {
@@ -49,7 +49,14 @@
             })
             return
           }
-          if (res.data === '登录成功') {
+          if (res.data === '登录成功') { // 使用redis登录成功
+            if (res.cookies.length !== 0) {
+              // ["userId=1580993781705_0.5937802374735008"]
+              const [, userId] = res.cookies[0].split('=') // ['userId', '1a2b3f']
+              uni.setStorageSync('userId', userId)
+            }
+            this.assignMemoCount(uni.getStorageSync('memoCount'))
+            this.assignTodoCount(uni.getStorageSync('todoCount'))
             this.changeLoginStatus(true)
           }
         })

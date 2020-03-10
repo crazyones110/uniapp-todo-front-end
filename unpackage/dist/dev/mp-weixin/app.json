@@ -2,17 +2,13 @@
   "pages": [
     "pages/memo/memo",
     "pages/test-login-cookie/test-login-cookie",
-    "pages/test-login-localStorage/test-login-localStorage",
-    "pages/login/login",
-    "pages/test/test",
     "pages/todo/todo",
-    "pages/swiper/swiper",
-    "pages/edit-memo/edit-memo"
+    "pages/edit-memo/edit-memo",
+    "pages/memo-search/memo-search"
   ],
   "subPackages": [],
   "window": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "uni-app",
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
   },
@@ -37,13 +33,9 @@
         "text": "我的",
         "iconPath": "static/我的.png",
         "selectedIconPath": "static/我的选中.png"
-      },
-      {
-        "pagePath": "pages/swiper/swiper",
-        "text": "test"
       }
     ]
   },
   "usingComponents": {},
-  "sitemapLocation": "sitemap41.json"
+  "sitemapLocation": "sitemap42.json"
 }

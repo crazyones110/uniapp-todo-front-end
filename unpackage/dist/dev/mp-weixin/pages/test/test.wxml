@@ -1,1 +1,0 @@
-<view><swiper-action vue-id="1" list="{{list}}" bind:__l="__l" vue-slots="{{['content','action']}}"><view slot="content"><view>asdasdasdsad</view></view><view slot="action"><view class="wrapper"><button>编辑</button><button>删除</button></view></view></swiper-action></view>

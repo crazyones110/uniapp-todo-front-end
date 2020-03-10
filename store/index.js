@@ -17,7 +17,10 @@ const store = new Vuex.Store({
     currentMemo: '',
     currentTodo: '',
     isLogin: false,
-    openid: ''
+    openid: '',
+    memoCount: 0,
+    todoCount: 0,
+    restTodoCount: 0
 	},
 	mutations: {
 		// login(state, userName) {
@@ -48,6 +51,24 @@ const store = new Vuex.Store({
     },
     changeOpenid(state, openid) {
       state.openid = openid
+    },
+    changeMemoCount(state, memoCount) {
+      state.memoCount += memoCount
+    },
+    changeTodoCount(state, todoCount) {
+      state.todoCount += todoCount
+    },
+    assignMemoCount(state, memoCount) {
+      state.memoCount = memoCount
+    },
+    assignTodoCount(state, todoCount) {
+      state.todoCount = todoCount
+    },
+    changeRestTodoCount(state, restTodoCount) {
+      state.restTodoCount += restTodoCount
+    },
+    assignRestTodoCount(state, restTodoCount) {
+      state.restTodoCount = restTodoCount
     }
 	}
 })

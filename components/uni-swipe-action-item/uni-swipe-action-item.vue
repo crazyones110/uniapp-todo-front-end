@@ -13,7 +13,7 @@
 		          backgroundColor: 'white',
 		          fontSize: item.style && item.style.fontSize ? item.style.fontSize : '16px'
 		        }"
-					 class="uni-swipe_button button-hock" @click.stop="onClick(index,item)">
+					 class="uni-swipe_button button-hock" @click.stop>
              <!-- <text class="uni-swipe_button-text" :style="{color: item.style && item.style.color ? item.style.color : '#FFFFFF',}">
                 {{ item.text }}
              </text> -->

@@ -185,26 +185,75 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var _vuex = __webpack_require__(/*! vuex */ 17);function _objectSpread(target) {for (var i = 1; i < arguments.length; i++) {var source = arguments[i] != null ? arguments[i] : {};var ownKeys = Object.keys(source);if (typeof Object.getOwnPropertySymbols === 'function') {ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {return Object.getOwnPropertyDescriptor(source, sym).enumerable;}));}ownKeys.forEach(function (key) {_defineProperty(target, key, source[key]);});}return target;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var _default =
+
+var _vuex = __webpack_require__(/*! vuex */ 17);function _slicedToArray(arr, i) {return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest();}function _nonIterableRest() {throw new TypeError("Invalid attempt to destructure non-iterable instance");}function _iterableToArrayLimit(arr, i) {var _arr = [];var _n = true;var _d = false;var _e = undefined;try {for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {_arr.push(_s.value);if (i && _arr.length === i) break;}} catch (err) {_d = true;_e = err;} finally {try {if (!_n && _i["return"] != null) _i["return"]();} finally {if (_d) throw _e;}}return _arr;}function _arrayWithHoles(arr) {if (Array.isArray(arr)) return arr;}function _objectSpread(target) {for (var i = 1; i < arguments.length; i++) {var source = arguments[i] != null ? arguments[i] : {};var ownKeys = Object.keys(source);if (typeof Object.getOwnPropertySymbols === 'function') {ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) {return Object.getOwnPropertyDescriptor(source, sym).enumerable;}));}ownKeys.forEach(function (key) {_defineProperty(target, key, source[key]);});}return target;}function _defineProperty(obj, key, value) {if (key in obj) {Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true });} else {obj[key] = value;}return obj;}var _default =
 
 
 
 {
   data: function data() {
     return {
-      leftMemo: [],
-      rightMemo: [],
+      leftMemo: [
+        // {
+        //   createTime: 1111,
+        //   content: '啊实打实大师大师大师大师法山海关打个电话时高时低阿萨德撒点阿萨德撒点撒点撒点撒点阿萨德撒点撒点阿萨德撒',
+        // },
+        // {
+        //   createTime: 1111,
+        //   content: '啊实打',
+        // }
+      ],
+      rightMemo: [
+        // {
+        //   createTime: 1111,
+        //   content: '啊实打实大师大师大师大师法山海关打个电话时高时低阿萨德撒点阿萨德撒点撒点撒点撒点阿萨德撒点撒点阿萨德撒',
+        // },
+        // {
+        //   createTime: 1111,
+        //   content: '山海关打个电话时高时低阿萨德撒点阿萨德撒点撒点撒点撒点阿萨德撒点撒点阿萨德撒',
+        // },
+        // {
+        //   createTime: 1111,
+        //   content: '啊实打实大师大师大师大师法山海关打个电话时高时低阿萨德撒点阿萨德撒点撒点撒点撒点阿萨德撒点撒点阿萨德撒',
+        // }
+      ],
       leftMemoHeight: 0,
       rightMemoHeight: 0,
       showTextarea: false,
-      memoContent: '' };
+      memoContent: '',
+      tabHeight: 0 };
 
   },
   computed: _objectSpread({},
   (0, _vuex.mapState)(['currentMemo', 'isLogin'])),
 
   methods: _objectSpread({},
-  (0, _vuex.mapMutations)(['changeMemo']), {
+  (0, _vuex.mapMutations)(['changeMemo', 'changeMemoCount']), {
+    searchMemo: function searchMemo(e) {
+      var value = e.detail.value;
+      // console.log(e.detail.value)
+      var searchedArr = [];
+      this.leftMemo.forEach(function (memo) {
+        if (memo.content.includes(value)) {
+          searchedArr.push(memo);
+        }
+      });
+      this.rightMemo.forEach(function (memo) {
+        if (memo.content.includes(value)) {
+          searchedArr.push(memo);
+        }
+      });
+      if (searchedArr.length === 0) {
+        uni.showToast({
+          title: '没有匹配条件的备忘录~',
+          icon: 'none' });
+
+      } else {
+        uni.navigateTo({
+          url: '../memo-search/memo-search?searchMemo=' + encodeURIComponent(JSON.stringify(searchedArr)) });
+
+      }
+    },
     getHeight: function getHeight() {var _this = this;
       return new Promise(function (resolve, reject) {
         var query = uni.createSelectorQuery().in(_this);
@@ -215,53 +264,38 @@ var _vuex = __webpack_require__(/*! vuex */ 17);function _objectSpread(target) {
         });
       });
     },
-    addMemo: function addMemo() {var _this2 = this;
+    addMemo: function addMemo() {
+      if (!this.isLogin) {
+        uni.showToast({
+          title: '请先登录',
+          image: '../../static/login.png' });
+
+        return;
+      }
       this.changeMemo('');
       uni.navigateTo({
-        url: '../edit-memo/edit-memo?type=add' });
+        url: '../edit-memo/edit-memo?type=add&tabHeight=' + this.tabHeight });
 
-      uni.$once('addMemo', function () {
-        var newMemo = {
-          createTime: Date.now(),
-          content: _this2.currentMemo };
-
-        _this2.addMemoToDOM(newMemo);
-        _this2.$http.post('/memo', newMemo, {
-          header: {
-            Cookie: "userId=".concat(uni.getStorageSync('userId')) } }).
-
-        then(function (res) {
-          if (res.data === 'Insert Error') {
-            uni.showToast({
-              title: '服务器新增数据失败' });
-
-            return;
-          }
-          if (res.data === 'Authentication Expires') {
-            uni.showToast({
-              title: '登录已过期,请重新登录' });
-
-            return;
-          }
-          if (res.data === '插入成功') {
-            console.log('插入成功');
-          }
-        });
-      });
     },
-    handleMemoClick: function handleMemoClick(leftOrRight, index) {var _this3 = this;
+    handleMemoClick: function handleMemoClick(leftOrRight, index) {var _this2 = this;
       var position = "".concat(leftOrRight, "Memo");
       this.changeMemo(this[position][index].content);
       uni.navigateTo({
-        url: '../edit-memo/edit-memo?type=edit' });
+        url: '../edit-memo/edit-memo?type=edit&tabHeight=' + this.tabHeight });
 
-      uni.$once('changeMemo', function () {
+      uni.$once('changeMemo', function (state) {
+        if (!state) {
+          return;
+        }
         var changedMemo = _objectSpread({},
-        _this3[position][index], {
-          content: _this3.currentMemo });
+        _this2[position][index], {
+          content: _this2.currentMemo });
 
-        _this3.$set(_this3[position], index, changedMemo);
-        _this3.$http.put('/memo', changedMemo, {
+
+        _this2.changeMemo(''); // 这里是我改过的
+
+        _this2.$set(_this2[position], index, changedMemo);
+        _this2.$http.put('/memo', changedMemo, {
           header: {
             Cookie: "userId=".concat(uni.getStorageSync('userId')) } }).
 
@@ -273,62 +307,123 @@ var _vuex = __webpack_require__(/*! vuex */ 17);function _objectSpread(target) {
             return;
           }
           if (res.data === 'Update Success') {
-            console.log('更新成功');
+          }
+        });
+      });
+      uni.$once('deleteMemo', function (state) {
+        if (!state) {
+          return;
+        }var _this2$position$splic =
+        _this2[position].splice(index, 1),_this2$position$splic2 = _slicedToArray(_this2$position$splic, 1),createTime = _this2$position$splic2[0].createTime;
+        uni.setStorageSync('memoCount', uni.getStorageSync('memoCount') - 1);
+        _this2.changeMemoCount(-1);
+        _this2.$http.delete('/memo', {
+          createTime: createTime },
+        {
+          header: {
+            Cookie: "userId=".concat(uni.getStorageSync('userId')) } }).
+
+        then(function (res) {
+          if (res.data === 'Delete Error') {
+            uni.showToast({
+              title: '服务器删除失败' });
+
+            return;
+          }
+          if (res.data === 'Delete Success') {
           }
         });
       });
     },
-    addMemoToDOM: function addMemoToDOM(newMemo) {var _this4 = this;
+    addMemoToDOM: function addMemoToDOM(newMemo) {var _this3 = this;
       this.getHeight().then(function (res) {var
-        leftMemoHeight = _this4.leftMemoHeight,rightMemoHeight = _this4.rightMemoHeight;
+        leftMemoHeight = _this3.leftMemoHeight,rightMemoHeight = _this3.rightMemoHeight;
         leftMemoHeight = res[0].height;
         rightMemoHeight = res[1].height;
         if (leftMemoHeight <= rightMemoHeight) {
-          _this4.leftMemo.push(newMemo);
+          _this3.leftMemo.push(newMemo);
         } else {
-          _this4.rightMemo.push(newMemo);
+          _this3.rightMemo.push(newMemo);
         }
       });
     } }),
 
-  onLoad: function onLoad() {var _this5 = this;
-    console.log('memo loginStatus', this.isLogin);
-    if (this.isLogin) {
-      this.$http.get('/memo', {
-        header: {
-          Cookie: "userId=".concat(uni.getStorageSync('userId')) } }).
-
-      then(function (res) {
-        console.log(res.data);
-        // res.data.forEach(this.addMemoToDOM)
-        // res.data.forEach(item => this.addMemoToDOM(item))
-        res.data.forEach(function (item, index) {
-          if (index % 2 === 0) {
-            _this5.leftMemo.push(item);
-          } else {
-            _this5.rightMemo.push(item);
-          }
-        });
-      });
+  onLoad: function onLoad() {var _this4 = this;var _uni$getSystemInfoSyn =
+    uni.getSystemInfoSync(),statusBarHeight = _uni$getSystemInfoSyn.statusBarHeight,platform = _uni$getSystemInfoSyn.platform,screenHeight = _uni$getSystemInfoSyn.screenHeight,windowHeight = _uni$getSystemInfoSyn.windowHeight;
+    // 安卓48 ios 44
+    if (platform === 'android') {
+      this.tabHeight = screenHeight - windowHeight - statusBarHeight - 48;
+    } else {
+      this.tabHeight = screenHeight - windowHeight - statusBarHeight - 44;
     }
-    uni.$once('loginFinished', function () {
-      _this5.$http.get('/memo', {
+    this.$nextTick(function () {
+      setTimeout(function () {
+        if (_this4.isLogin) {
+          _this4.$http.get('/memo', {
+            header: {
+              Cookie: "userId=".concat(uni.getStorageSync('userId')) } }).
+
+          then(function (res) {
+            res.data.forEach(function (item, index) {
+              if (index % 2 === 0) {
+                _this4.leftMemo.push(item);
+              } else {
+                _this4.rightMemo.push(item);
+              }
+            });
+          });
+        }
+      }, 100);
+    });
+    uni.$on('loginFinished', function () {
+      _this4.$http.get('/memo', {
         header: {
           Cookie: "userId=".concat(uni.getStorageSync('userId')) } }).
 
       then(function (res) {
-        console.log(res.data);
-        // res.data.forEach(this.addMemoToDOM)
-        // res.data.forEach(item => this.addMemoToDOM(item))
         res.data.forEach(function (item, index) {
           if (index % 2 === 0) {
-            _this5.leftMemo.push(item);
+            _this4.leftMemo.push(item);
           } else {
-            _this5.rightMemo.push(item);
+            _this4.rightMemo.push(item);
           }
         });
       });
     });
+    uni.$on('addMemo', function () {
+      var newMemo = {
+        createTime: Date.now(),
+        content: _this4.currentMemo };
+
+      _this4.addMemoToDOM(newMemo);
+
+      uni.setStorageSync('memoCount', uni.getStorageSync('memoCount') + 1);
+      _this4.changeMemoCount(1);
+
+      _this4.$http.post('/memo', newMemo, {
+        header: {
+          Cookie: "userId=".concat(uni.getStorageSync('userId')) } }).
+
+      then(function (res) {
+        if (res.data === 'Insert Error') {
+          uni.showToast({
+            title: '服务器新增数据失败' });
+
+          return;
+        }
+        if (res.data === 'Authentication Expires') {
+          uni.showToast({
+            title: '登录已过期,请重新登录' });
+
+          return;
+        }
+        if (res.data === '插入成功') {
+        }
+      });
+    });
+  },
+  onUnload: function onUnload() {
+    uni.$off('addMemo');
   } };exports.default = _default;
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/@dcloudio/uni-mp-weixin/dist/index.js */ 1)["default"]))
 

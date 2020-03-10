@@ -2,18 +2,19 @@
 	<view class="memo">
     <view class="search-wrapper">
       <text class="iconfont icon-search"></text>
-      <input type="text" placeholder="搜索备忘录" confirm-type="search"/>
+      <input type="text" placeholder="搜索备忘录" confirm-type="search" @confirm="searchMemo"/>
     </view>
     <view class="left-right-memo-wrapper">
       <view class="left-memo" ref="leftMemo">
         <view v-for="(memo,index) in leftMemo" :key="index" class="memo-content" @click="handleMemoClick('left', index)">
-          {{memo.content}}
+          <view class="ellipsis">{{memo.content}}</view>
           <view class="memo-time">{{memo.createTime | formattedYear}}</view>
         </view>
       </view>
       <view class="right-memo" ref="rightMemo">
         <view v-for="(memo,index) in rightMemo" :key="index" class="memo-content" @click="handleMemoClick('right', index)">
-          {{memo.content}}
+          <view class="ellipsis">{{memo.content}}</view>
+          
           <view class="memo-time">{{memo.createTime | formattedYear}}</view>
         </view>
       </view>
@@ -30,19 +31,67 @@
 	export default {
 		data() {
 			return {
-				leftMemo: [],
-        rightMemo: [],
+				leftMemo: [
+          // {
+          //   createTime: 1111,
+          //   content: '啊实打实大师大师大师大师法山海关打个电话时高时低阿萨德撒点阿萨德撒点撒点撒点撒点阿萨德撒点撒点阿萨德撒',
+          // },
+          // {
+          //   createTime: 1111,
+          //   content: '啊实打',
+          // }
+        ],
+        rightMemo: [
+          // {
+          //   createTime: 1111,
+          //   content: '啊实打实大师大师大师大师法山海关打个电话时高时低阿萨德撒点阿萨德撒点撒点撒点撒点阿萨德撒点撒点阿萨德撒',
+          // },
+          // {
+          //   createTime: 1111,
+          //   content: '山海关打个电话时高时低阿萨德撒点阿萨德撒点撒点撒点撒点阿萨德撒点撒点阿萨德撒',
+          // },
+          // {
+          //   createTime: 1111,
+          //   content: '啊实打实大师大师大师大师法山海关打个电话时高时低阿萨德撒点阿萨德撒点撒点撒点撒点阿萨德撒点撒点阿萨德撒',
+          // }
+        ],
         leftMemoHeight: 0,
         rightMemoHeight: 0,
         showTextarea: false,
-        memoContent: ''
+        memoContent: '',
+        tabHeight: 0
 			}
 		},
     computed: {
       ...mapState(['currentMemo', 'isLogin']),
     },
     methods: {
-      ...mapMutations(['changeMemo']),
+      ...mapMutations(['changeMemo', 'changeMemoCount']),
+      searchMemo(e) {
+        const value = e.detail.value
+        // console.log(e.detail.value)
+        const searchedArr = []
+        this.leftMemo.forEach(memo => {
+          if (memo.content.includes(value)) {
+            searchedArr.push(memo)
+          }
+        })
+        this.rightMemo.forEach(memo => {
+          if (memo.content.includes(value)) {
+            searchedArr.push(memo)
+          }
+        })
+        if (searchedArr.length === 0) {
+          uni.showToast({
+            title: '没有匹配条件的备忘录~',
+            icon: 'none'
+          })
+        } else {
+          uni.navigateTo({
+            url: '../memo-search/memo-search?searchMemo=' + encodeURIComponent(JSON.stringify(searchedArr))
+          })
+        }
+      },
       getHeight() {
         return new Promise((resolve, reject) => {
           const query = uni.createSelectorQuery().in(this)
@@ -54,50 +103,35 @@
         })
       },
       addMemo() {
+        if (!this.isLogin) {
+          uni.showToast({
+            title: '请先登录',
+            image: '../../static/login.png'
+          })
+          return
+        }
         this.changeMemo('')
         uni.navigateTo({
-          url: '../edit-memo/edit-memo?type=add'
-        })
-        uni.$once('addMemo', () => {
-          const newMemo = {
-            createTime: Date.now(),
-            content: this.currentMemo
-          }
-          this.addMemoToDOM(newMemo)
-          this.$http.post('/memo', newMemo, {
-            header: {
-              Cookie: `userId=${uni.getStorageSync('userId')}`
-            }
-          }).then(res => {
-            if (res.data === 'Insert Error') {
-              uni.showToast({
-                title: '服务器新增数据失败',
-              })
-              return
-            }
-            if (res.data === 'Authentication Expires') {
-              uni.showToast({
-                title: '登录已过期,请重新登录'
-              })
-              return
-            }
-            if (res.data === '插入成功') {
-              console.log('插入成功')
-            }
-          })
+          url: '../edit-memo/edit-memo?type=add&tabHeight=' + this.tabHeight
         })
       },
       handleMemoClick(leftOrRight, index) {
         const position = `${leftOrRight}Memo`
         this.changeMemo(this[position][index].content)
         uni.navigateTo({
-          url: '../edit-memo/edit-memo?type=edit'
+          url: '../edit-memo/edit-memo?type=edit&tabHeight=' + this.tabHeight
         })
-        uni.$once('changeMemo', () => {
+        uni.$once('changeMemo', (state) => {
+          if (!state) {
+            return
+          }
           const changedMemo = {
             ...this[position][index],
             content: this.currentMemo
           }
+          
+          this.changeMemo('') // 这里是我改过的
+          
           this.$set(this[position], index, changedMemo)
           this.$http.put('/memo', changedMemo, {
             header: {
@@ -111,7 +145,30 @@
               return
             }
             if (res.data === 'Update Success') {
-              console.log('更新成功')
+            }
+          })
+        })
+        uni.$once('deleteMemo', (state) => {
+          if (!state) {
+            return
+          }
+          const [{createTime}] = this[position].splice(index, 1)
+          uni.setStorageSync('memoCount', uni.getStorageSync('memoCount') - 1)
+          this.changeMemoCount(-1)
+          this.$http.delete('/memo', {
+            createTime
+          }, {
+            header: {
+              Cookie: `userId=${uni.getStorageSync('userId')}`
+            }
+          }).then(res => {
+            if (res.data === 'Delete Error') {
+              uni.showToast({
+                title: '服务器删除失败',
+              })
+              return
+            }
+            if (res.data === 'Delete Success') {
             }
           })
         })
@@ -130,34 +187,38 @@
       }
     },
     onLoad() {
-      console.log('memo loginStatus', this.isLogin)
-      if (this.isLogin) {
-        this.$http.get('/memo', {
-          header: {
-            Cookie: `userId=${uni.getStorageSync('userId')}`
-          }
-        }).then(res => {
-          console.log(res.data)
-          // res.data.forEach(this.addMemoToDOM)
-          // res.data.forEach(item => this.addMemoToDOM(item))
-          res.data.forEach((item, index) => {
-            if (index % 2 === 0) {
-              this.leftMemo.push(item)
-            } else {
-              this.rightMemo.push(item)
-            }
-          })
-        })
+      const {statusBarHeight, platform, screenHeight, windowHeight} = uni.getSystemInfoSync()
+      // 安卓48 ios 44
+      if (platform === 'android') {
+        this.tabHeight = screenHeight - windowHeight - statusBarHeight - 48
+      } else {
+        this.tabHeight = screenHeight - windowHeight - statusBarHeight - 44
       }
-      uni.$once('loginFinished', () => {
+      this.$nextTick(() => {
+        setTimeout(() => {
+          if (this.isLogin) {
+            this.$http.get('/memo', {
+              header: {
+                Cookie: `userId=${uni.getStorageSync('userId')}`
+              }
+            }).then(res => {
+              res.data.forEach((item, index) => {
+                if (index % 2 === 0) {
+                  this.leftMemo.push(item)
+                } else {
+                  this.rightMemo.push(item)
+                }
+              })
+            })
+          }
+        }, 100)
+      })
+      uni.$on('loginFinished', () => {
         this.$http.get('/memo', {
           header: {
             Cookie: `userId=${uni.getStorageSync('userId')}`
           }
         }).then(res => {
-          console.log(res.data)
-          // res.data.forEach(this.addMemoToDOM)
-          // res.data.forEach(item => this.addMemoToDOM(item))
           res.data.forEach((item, index) => {
             if (index % 2 === 0) {
               this.leftMemo.push(item)
@@ -167,40 +228,74 @@
           })
         })
       })
+      uni.$on('addMemo', () => {
+        const newMemo = {
+          createTime: Date.now(),
+          content: this.currentMemo
+        }
+        this.addMemoToDOM(newMemo)
+        
+        uni.setStorageSync('memoCount', uni.getStorageSync('memoCount') + 1)
+        this.changeMemoCount(1)
+        
+        this.$http.post('/memo', newMemo, {
+          header: {
+            Cookie: `userId=${uni.getStorageSync('userId')}`
+          }
+        }).then(res => {
+          if (res.data === 'Insert Error') {
+            uni.showToast({
+              title: '服务器新增数据失败',
+            })
+            return
+          }
+          if (res.data === 'Authentication Expires') {
+            uni.showToast({
+              title: '登录已过期,请重新登录'
+            })
+            return
+          }
+          if (res.data === '插入成功') {
+          }
+        })
+      })
+    },
+    onUnload() {
+      uni.$off('addMemo')
     }
 	}
 </script>
 
 <style lang="scss" scoped>
 @import '~@/common/icon';
-$line-height: 1.2rem;
+$line-height: 1.32rem;
 .memo {
   background-color: rgb(244, 244, 244);
   padding: 10upx 15upx;
   min-height: 100vh;
   .search-wrapper {
-    background-color: white;
+    background-color: rgb(229, 229, 229);
     position: relative;
     display: flex;
     align-items: center;
+    border-radius: 10px;
+    height: 30px;
+    padding-left: 1.1rem;
     .icon-search {
       position: absolute;
-      left: 0;
-      // top: 0.5rem;
-      // font-size: 0.5rem;
+      left: 3px;
+      font-size: 0.8rem;
     }
     input {
-      padding: 0.2rem 1.1rem;
-      font-size: 0.8rem;
-
+      font-size: 1.1rem;
+      width: 100%;
     }
   }
   .left-right-memo-wrapper {
-    border: 1px solid red;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-top: 10upx;
+    margin-top: 14upx;
     .left-memo,.right-memo {
       flex-shrink: 0;
       width: calc((100% - 15upx) / 2);
@@ -209,21 +304,31 @@ $line-height: 1.2rem;
       // border: 1px solid blue;
     }
     .memo-content {
-      margin-bottom: 10upx;
+      border-radius: 10px;
+      font-size: 18px;
+      margin-bottom: 14upx;
       background-color: white;
-      line-height: $line-height;
-      min-height: $line-height * 3;
-      word-break: break-all;
-      overflow: hidden;
-      display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical;
+      // line-height: $line-height;
+      // min-height: $line-height * 3;
+      padding: 1rem;
       padding-bottom: $line-height;
       position: relative;
+      .ellipsis {
+        line-height: $line-height;
+        min-height: $line-height * 2;
+        display: -webkit-box;
+        word-break: break-all;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp:7;//设置 需要显示的行数
+      }
       .memo-time {
         position: absolute;
         color: #aaa;
         font-size: 12px;
         bottom: 0;
-        left: 0;
+        left: 1rem;
       }
     }
   }

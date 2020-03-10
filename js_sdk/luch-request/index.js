@@ -43,7 +43,8 @@ test.interceptor.response((response) => { /* 请求之后拦截器 */
 const http = new Request()
 
 http.setConfig((config) => { /* 设置全局配置 */
-  config.baseUrl = 'http://192.168.102.3:3000' /* 根域名不同 */
+  // 这里要换成http://www.crazyones.zone的
+  config.baseUrl = 'https://crazyones.zone' /* 根域名不同 */
   config.header = {
     ...config.header
   }

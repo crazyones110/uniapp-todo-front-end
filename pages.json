@@ -9,48 +9,34 @@
     {
       "path": "pages/test-login-cookie/test-login-cookie",
       "style": {
-        "navigationBarTitleText": "login with cookie"
+        "navigationBarTitleText": "",
+        "enablePullDownRefresh": true
       }
     },
-    {
-      "path": "pages/test-login-localStorage/test-login-localStorage",
-      "style": {}
-    },
-    {
-      "path": "pages/login/login",
-      "style": {}
-    },
-    {
-      "path": "pages/test/test",
-      "style": {}
-    }, 
     {
       "path": "pages/todo/todo",
       "style": {
         "navigationBarTitleText": "代办"
       }
+    }, {
+      "path": "pages/edit-memo/edit-memo",
+      "style": {
+        "navigationBarTitleText": "编辑备忘录",
+        "navigationStyle": "custom"
+      }
+    }, {
+      "path": "pages/memo-search/memo-search",
+      "style": {}
     }
-      ,{
-            "path" : "pages/swiper/swiper",
-            "style" : {}
-        }
-        ,{
-            "path" : "pages/edit-memo/edit-memo",
-            "style" : {
-              "navigationBarTitleText": "编辑备忘录",
-              "navigationStyle":"custom"
-            }
-        }
-    ],
+  ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "uni-app",
     "navigationBarBackgroundColor": "#F8F8F8",
     "backgroundColor": "#F8F8F8"
   },
   "tabBar": {
-    "selectedColor":"#1296db",
-    "backgroundColor":"#f4f4f4",
+    "selectedColor": "#1296db",
+    "backgroundColor": "#f4f4f4",
     "list": [{
         "pagePath": "pages/memo/memo",
         "text": "备忘录",
@@ -68,10 +54,6 @@
         "text": "我的",
         "iconPath": "static/我的.png",
         "selectedIconPath": "static/我的选中.png"
-      },
-      {
-        "pagePath": "pages/swiper/swiper",
-        "text": "test"
       }
     ]
   }

@@ -11,9 +11,9 @@
             @deleteTodo="handleDeleteTodo"
             @editTodo="handleEditTodo"
           >
-            <view class="cont" :class="{'todo-finish': todo.checked}">
+            <view class="cont" :class="{'todo-finish': todo.checked}" @click="finishTodo(todo.createTime)">
               <view class="todo-list-checkbox">
-                <view class="checkbox" @click="finishTodo(todo.createTime)"></view>
+                <view class="checkbox" ></view>
               </view>
               <view class="todo-list-content">
                 {{todo.content}}
@@ -37,6 +37,8 @@
       @input="textValue = $event.detail.value"
       :value="textValue"
       :class="{animate: showTextarea}"
+      fixed
+      focus
     /> <!--可以加focus-->
     <view class="click-hide" v-if="showTextarea" @click="clickHide"></view>
   </view>
@@ -48,33 +50,29 @@ import {
   mapMutations
 } from 'vuex'
 import TodoHeader from "../../components/todoHeader.vue";
-import swiperAction from '../../components/swiperAction.vue'
-import swiperActionList from '../../components/swiperActionList.vue'
 import uniSwipeAction from '@/components/uni-swipe-action/uni-swipe-action.vue'
 import uniSwipeActionItem from '@/components/uni-swipe-action-item/uni-swipe-action-item.vue'
 export default {
   components: {
     TodoHeader,
-    swiperAction,
-    swiperActionList,
     uniSwipeAction,
     uniSwipeActionItem
   },
   data() {
     return {
       todoList: [
-        {
-          createTime: 123,
-          content: '今晚打老虎',
-          checked: false,
-          deleted: false
-        },
-        {
-          createTime: 12345,
-          content: '今晚打麻将a啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊阿啊啊啊啊啊啊啊',
-          checked: false,
-          deleted: false
-        }
+        // {
+        //   createTime: 123,
+        //   content: '今晚打老虎',
+        //   checked: false,
+        //   deleted: false
+        // },
+        // {
+        //   createTime: 12345,
+        //   content: '今晚打麻将a啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊阿啊啊啊啊啊啊啊',
+        //   checked: false,
+        //   deleted: false
+        // }
       ],
       showTextarea: false,
       actionVisible: false,
@@ -93,24 +91,28 @@ export default {
 
       // 代办
       if (this.tab === 0) {
-        console.log("todo 0")
         return list.filter(item => !item.checked)
       }
       // 点击已完成
       if (this.tab === 1) {
-        console.log("todo 1")
         return list.filter(item => item.checked)
       }
       // 点击全部
       if (this.tab === 2) {
-        console.log("todo 2")
         return list;
       }
     }
   },
   methods: {
-    ...mapMutations(['switchTab']),
+    ...mapMutations(['switchTab', 'changeTodoCount', 'changeRestTodoCount']),
     addTodo() {
+      if (!this.isLogin) {
+        uni.showToast({
+          title: '请先登录',
+          image: '../../static/login.png'
+        })
+        return
+      }
       this.showTextarea = true
       this.isAddingTodo = true
     },
@@ -124,6 +126,10 @@ export default {
           deleted: false
         }
         this.todoList.push(newTodo)
+        uni.setStorageSync('todoCount', uni.getStorageSync('todoCount') + 1)
+        uni.setStorageSync('restTodoCount', uni.getStorageSync('restTodoCount') + 1)
+        this.changeTodoCount(1)
+        this.changeRestTodoCount(1)
         this.textValue = ''
         this.isAddingTodo = false
         this.$http.post('/todo', newTodo, {
@@ -132,7 +138,6 @@ export default {
           }
         }).then(res => {
           if (res.data === 'Insert Success') {
-            console.log('插入成功')
             return
           }
           if (res.data === 'Insert Error') {
@@ -156,7 +161,14 @@ export default {
     },
     handleDeleteTodo({ todoCreateTime }) {
       const index = this.todoList.findIndex(item => item.createTime === todoCreateTime)
-      this.todoList.splice(index, 1)
+      const [{checked}] = this.todoList.splice(index, 1)
+      console.log(checked)
+      uni.setStorageSync('todoCount', uni.getStorageSync('todoCount') - 1)
+      this.changeTodoCount(-1)
+      if (checked === false) {
+        uni.setStorageSync('restTodoCount', uni.getStorageSync('restTodoCount') - 1)
+        this.changeRestTodoCount(-1)
+      }
       this.$http.delete('/todo', {
         createTime: todoCreateTime
       }, {
@@ -171,7 +183,6 @@ export default {
           return
         }
         if (res.data === 'Delete Success') {
-          console.log('删除成功')
         }
       })
     },
@@ -198,19 +209,26 @@ export default {
             return
           }
           if (res.data === 'Update Success') {
-            console.log('更新成功')
           }
         })
-        console.log('edit todo之后', this.todoList)
       })
     },
     finishTodo(todoCreateTime) {
       const index = this.todoList.findIndex(item => item.createTime === todoCreateTime)
+      const checked = this.todoList[index].checked
+      if (!checked) { // 本来是未完成，变成已完成
+        uni.setStorageSync('restTodoCount', uni.getStorageSync('restTodoCount') - 1)
+        this.changeRestTodoCount(-1)
+      } else { // 本来已完成，变成未完成
+        uni.setStorageSync('restTodoCount', uni.getStorageSync('restTodoCount') + 1)
+        this.changeRestTodoCount(1)
+      }
       const newTodo = {
         ...this.todoList[index],
-        checked: !this.todoList[index].checked
+        checked: !checked
       }
       this.$set(this.todoList, index, newTodo)
+      
       this.$http.put('/todo', newTodo, {
         header: {
           Cookie: `userId=${uni.getStorageSync('userId')}`
@@ -223,7 +241,6 @@ export default {
           return
         }
         if (res.data === 'Update Success') {
-          console.log('更新成功')
         }
       })
     }
@@ -235,18 +252,16 @@ export default {
           Cookie: `userId=${uni.getStorageSync('userId')}`
         }
       }).then(res => {
-        console.log(res.data)
         // res.data.forEach(this.todoList.push)
         res.data.forEach(item => this.todoList.push(item))
       })
     }
-    uni.$once('loginFinished', () => {
+    uni.$on('loginFinished', () => {
       this.$http.get('/todo', {
         header: {
           Cookie: `userId=${uni.getStorageSync('userId')}`
         }
       }).then(res => {
-        console.log(res.data)
         res.data.forEach(item => this.todoList.push(item))
       })
     })
@@ -281,9 +296,10 @@ export default {
   }
 }
 .todo-textarea {
-  border: 1px solid red;
   padding: 10px;
   position: fixed;
+  border: 1px solid rgb(244, 244, 244);
+  box-shadow: 0px -2px 5px 3px rgba(244,244,244,0.76);
   bottom: 0;
   right: 0;
   left: 0;

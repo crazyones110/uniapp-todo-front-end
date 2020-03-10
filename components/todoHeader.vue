@@ -88,12 +88,8 @@ import {
 		  switchTabHeader(index) {
 		    this.activeTabIndex = index
         this.switchTab(index)
-        console.log('tab=', index, this.tab)
 		  }
-		},
-    mounted() {
-      console.log(this.list)
-    }
+		}
 	}
 </script>
 
