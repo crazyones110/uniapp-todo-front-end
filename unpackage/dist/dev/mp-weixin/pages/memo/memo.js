@@ -287,14 +287,17 @@ var _vuex = __webpack_require__(/*! vuex */ 17);function _slicedToArray(arr, i) 
         if (!state) {
           return;
         }
+
         var changedMemo = _objectSpread({},
         _this2[position][index], {
-          content: _this2.currentMemo });
+          content: _this2.currentMemo
 
 
-        _this2.changeMemo(''); // 这里是我改过的
-
+          // this.changeMemo('') // 这里是我改过的
+        });
         _this2.$set(_this2[position], index, changedMemo);
+
+
         _this2.$http.put('/memo', changedMemo, {
           header: {
             Cookie: "userId=".concat(uni.getStorageSync('userId')) } }).
@@ -424,6 +427,10 @@ var _vuex = __webpack_require__(/*! vuex */ 17);function _slicedToArray(arr, i) 
   },
   onUnload: function onUnload() {
     uni.$off('addMemo');
+  },
+  onShow: function onShow() {
+    uni.$off('deleteMemo');
+    uni.$off('changeMemo');
   } };exports.default = _default;
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./node_modules/@dcloudio/uni-mp-weixin/dist/index.js */ 1)["default"]))
 

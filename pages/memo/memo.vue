@@ -125,14 +125,17 @@
           if (!state) {
             return
           }
+          
           const changedMemo = {
             ...this[position][index],
             content: this.currentMemo
           }
           
-          this.changeMemo('') // 这里是我改过的
+          // this.changeMemo('') // 这里是我改过的
           
           this.$set(this[position], index, changedMemo)
+          
+          
           this.$http.put('/memo', changedMemo, {
             header: {
               Cookie: `userId=${uni.getStorageSync('userId')}`
@@ -262,6 +265,10 @@
     },
     onUnload() {
       uni.$off('addMemo')
+    },
+    onShow() {
+      uni.$off('deleteMemo')
+      uni.$off('changeMemo')
     }
 	}
 </script>
